@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyMuch Photo Editor</title>
+    <style>
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #000000;
+}
+h2{
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    color: #01375b;
+    font-weight: bold;
+}
+.editor-container {
+    background: #a6a6a6;
+    width: 450px;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+.image-container img {
+    position: absolute;
+    top: 240px;
+    right: 560px;
+    width: 200px;
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+    display: none; /* Hide the image initially */
+}
+.controls {
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.controls label {
+    margin-bottom: -10px;
+    text-align: left;
+}
+.controls input[type="range"] {
+    width: 40%;
+}
+button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #00ab9a;
+}
+#reset {
+    background-color: #dc3545;
+    margin-left: 10px;
+}
+#reset:hover {
+    background-color: #83020f;
+}
+    </style>
+</head>
+
+<body>
+    <div class="editor-container">
+        <h2>SM Photo Editor</h2>
+        <input type="file" id="upload" title="Choose Image" accept="image/*">
+        
+        <div class="image-container">
+            <img id="image" src="" alt="Editable Image">
+            <canvas id="canvas" style="display:none;"></canvas>
+        </div>
+        <br>
+        <div class="controls">
+            <label for="brightness">Brightness</label>
+            <input type="range" id="brightness" name="brightness" min="0" max="200" value="100">   
+            <label for="contrast">Contrast</label>
+            <input type="range" id="contrast" name="contrast" min="0" max="200" value="100">
+            <label for="grayscale">Grayscale</label>
+            <input type="range" id="grayscale" name="grayscale" min="0" max="100" value="0">
+            <label for="sepia">Sepia</label>
+            <input type="range" id="sepia" name="sepia" min="0" max="100" value="0">
+            <label for="invert">Invert</label>
+            <input type="range" id="invert" name="invert" min="0" max="100" value="0">
+            <label for="blur">Blur</label>
+            <input type="range" id="blur" name="blur" min="0" max="10" value="0">
+            <label for="hue-rotate">Hue Rotate</label>
+            <input type="range" id="hue-rotate" name="hue-rotate" min="0" max="360" value="0">
+        </div>
+        <button id="download">Download Edited Image</button>
+        <button id="reset">Reset</button>
+    </div>
+
+<script>
+const upload = document.getElementById('upload');
+const image = document.getElementById('image');
+const canvas = document.getElementById('canvas');
+const downloadButton = document.getElementById('download');
+const resetButton = document.getElementById('reset');
+const brightness = document.getElementById('brightness');
+const contrast = document.getElementById('contrast');
+const grayscale = document.getElementById('grayscale');
+const sepia = document.getElementById('sepia');
+const invert = document.getElementById('invert');
+const blur = document.getElementById('blur');
+const hueRotate = document.getElementById('hue-rotate');
+const ctx = canvas.getContext('2d');
+const defaultValues = {
+    brightness: 100,
+    contrast: 100,
+    grayscale: 0,
+    sepia: 0,
+    invert: 0,
+    blur: 0,
+    hueRotate: 0
+};
+upload.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            image.src = e.target.result;
+            image.style.display = 'block'; // Show the image
+        };
+        reader.readAsDataURL(file);
+    }
+});
+function updateImage() {
+    const brightnessValue = brightness.value;
+    const contrastValue = contrast.value;
+    const grayscaleValue = grayscale.value;
+    const sepiaValue = sepia.value;
+    const invertValue = invert.value;
+    const blurValue = blur.value;
+    const hueRotateValue = hueRotate.value;
+    const filter = `
+        brightness(${brightnessValue}%)
+        contrast(${contrastValue}%)
+        grayscale(${grayscaleValue}%)
+        sepia(${sepiaValue}%)
+        invert(${invertValue}%)
+        blur(${blurValue}px)
+        hue-rotate(${hueRotateValue}deg)
+    `;
+    image.style.filter = filter;
+    // Draw the edited image on the canvas
+    image.onload = function() {
+        canvas.width = image.width;
+        canvas.height = image.height;
+        ctx.filter = filter;
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    };
+    if (image.complete) {
+        canvas.width = image.width;
+        canvas.height = image.height;
+        ctx.filter = filter;
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    }
+}
+function resetFilters() {
+    brightness.value = defaultValues.brightness;
+    contrast.value = defaultValues.contrast;
+    grayscale.value = defaultValues.grayscale;
+    sepia.value = defaultValues.sepia;
+    invert.value = defaultValues.invert;
+    blur.value = defaultValues.blur;
+    hueRotate.value = defaultValues.hueRotate;
+    updateImage();
+}
+brightness.addEventListener('input', updateImage);
+contrast.addEventListener('input', updateImage);
+grayscale.addEventListener('input', updateImage);
+sepia.addEventListener('input', updateImage);
+invert.addEventListener('input', updateImage);
+blur.addEventListener('input', updateImage);
+hueRotate.addEventListener('input', updateImage);
+downloadButton.addEventListener('click', () => {
+    const link = document.createElement('a');
+    link.download = 'edited-image.png';
+    link.href = canvas.toDataURL();
+    link.click();
+});
+resetButton.addEventListener('click', resetFilters);
+</script>
+</body>
+</html>
